@@ -9,22 +9,22 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const { action, id } = req.query;
+  if (!id) return res.status(400).json({ error: "id required" });
+
   const db = readDB();
   const entry = db.commands.find(c => String(c.id) === String(id));
 
-  // INSTALL
   if (action === "install") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
-    if (!entry) return res.status(404).json({ error: "Not found" });
+    if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
     entry.installs = (entry.installs || 0) + 1;
     writeDB(db);
     return res.status(200).json({ success: true, installs: entry.installs });
   }
 
-  // LIKE
   if (action === "like") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
-    if (!entry) return res.status(404).json({ error: "Not found" });
+    if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
     const { userID } = req.body || {};
     if (!entry.likedBy) entry.likedBy = [];
     if (userID && entry.likedBy.includes(String(userID)))
@@ -35,17 +35,16 @@ module.exports = async (req, res) => {
     return res.status(200).json({ success: true, likes: entry.likes });
   }
 
-  // DELETE
   if (action === "delete") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
     const { secret } = req.body || {};
-    if (secret !== SECRET_KEY)
+    if (!secret || secret !== SECRET_KEY)
       return res.status(403).json({ error: "Invalid secret key." });
-    if (!entry) return res.status(404).json({ error: "Not found" });
+    if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
     db.commands = db.commands.filter(c => String(c.id) !== String(id));
     writeDB(db);
     return res.status(200).json({ success: true, deleted: id });
   }
 
-  return res.status(404).json({ error: "Unknown action." });
+  return res.status(400).json({ error: `Unknown action: ${action}` });
 };
