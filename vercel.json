@@ -2,15 +2,17 @@
   "version": 2,
   "name": "rockystore",
   "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" }
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html",  "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/rockystore/upload",              "dest": "/api/rockystore/upload.js" },
-    { "src": "/rockystore/list",                "dest": "/api/rockystore/list.js" },
-    { "src": "/rockystore/search",              "dest": "/api/rockystore/search.js" },
-    { "src": "/rockystore/trending",            "dest": "/api/rockystore/trending.js" },
-    { "src": "/rockystore/install/([^/]+)",     "dest": "/api/rockystore/[action]/[id].js?action=install&id=$1" },
-    { "src": "/rockystore/like/([^/]+)",        "dest": "/api/rockystore/[action]/[id].js?action=like&id=$1" },
-    { "src": "/rockystore/delete/([^/]+)",      "dest": "/api/rockystore/[action]/[id].js?action=delete&id=$1" }
+    { "src": "/rockystore/upload",          "dest": "/api/rockystore/upload.js" },
+    { "src": "/rockystore/list",            "dest": "/api/rockystore/list.js" },
+    { "src": "/rockystore/search",          "dest": "/api/rockystore/search.js" },
+    { "src": "/rockystore/trending",        "dest": "/api/rockystore/trending.js" },
+    { "src": "/rockystore/install/([^/]+)", "dest": "/api/rockystore/[action]/[id].js?action=install&id=$1" },
+    { "src": "/rockystore/like/([^/]+)",    "dest": "/api/rockystore/[action]/[id].js?action=like&id=$1" },
+    { "src": "/rockystore/delete/([^/]+)",  "dest": "/api/rockystore/[action]/[id].js?action=delete&id=$1" },
+    { "src": "/",                           "dest": "/index.html" }
   ]
 }
