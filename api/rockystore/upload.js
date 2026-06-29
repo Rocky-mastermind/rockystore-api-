@@ -3,9 +3,60 @@ const { readDB, writeDB } = require("../../lib/db");
 
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   if (req.method === "OPTIONS") return res.status(200).end();
+
+  // GET request আসলে HTML form দেখাও
+  if (req.method === "GET") {
+    res.setHeader("Content-Type", "text/html");
+    return res.status(200).send(`<!DOCTYPE html>
+<html>
+<head><title>Rocky Store Upload</title>
+<style>
+body{font-family:sans-serif;max-width:500px;margin:50px auto;padding:20px;background:#111;color:#fff}
+input,select{width:100%;padding:10px;margin:8px 0;background:#222;color:#fff;border:1px solid #444;border-radius:6px;box-sizing:border-box}
+button{width:100%;padding:12px;background:#6c63ff;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:16px}
+button:hover{background:#574fd6}
+pre{background:#222;padding:15px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+h2{color:#6c63ff}
+</style>
+</head>
+<body>
+<h2>🛒 Rocky Store Upload</h2>
+<input id="rawUrl" placeholder="GitHub Raw URL (https://raw.githubusercontent.com/...)" />
+<select id="kind"><option value="command">Command</option><option value="event">Event</option></select>
+<input id="author" placeholder="Author (optional)" />
+<input id="category" placeholder="Category (optional)" />
+<button onclick="upload()">⬆️ Upload</button>
+<pre id="result">Result will appear here...</pre>
+<script>
+async function upload(){
+  const rawUrl=document.getElementById('rawUrl').value.trim();
+  const kind=document.getElementById('kind').value;
+  const author=document.getElementById('author').value.trim();
+  const category=document.getElementById('category').value.trim();
+  if(!rawUrl){document.getElementById('result').textContent='❌ rawUrl দাও!';return;}
+  document.getElementById('result').textContent='⏳ Uploading...';
+  try{
+    const r=await fetch('/rockystore/upload',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({rawUrl,framework:'goat',kind,author,category})
+    });
+    const d=await r.json();
+    document.getElementById('result').textContent=JSON.stringify(d,null,2);
+  }catch(e){
+    document.getElementById('result').textContent='❌ Error: '+e.message;
+  }
+}
+</script>
+</body>
+</html>`);
+  }
+
+  // POST — actual upload logic
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { rawUrl, framework, kind, author, category } = req.body || {};
@@ -17,7 +68,6 @@ module.exports = async (req, res) => {
   if (!["command", "event"].includes(kind))
     return res.status(400).json({ error: "kind must be 'command' or 'event'." });
 
-  // rawUrl থেকে code fetch
   let rawCode = "";
   try {
     const r = await axios.get(rawUrl, {
@@ -34,7 +84,6 @@ module.exports = async (req, res) => {
 
   if (!rawCode.trim()) return res.status(400).json({ error: "File is empty." });
 
-  // field extract
   const extract = (code, field) =>
     code.match(new RegExp(`${field}\\s*:\\s*["'\`](.*?)["'\`]`))?.[1]?.trim() || null;
 
