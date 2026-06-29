@@ -11,14 +11,9 @@ module.exports = async (req, res) => {
   const lim = Math.min(parseInt(limit) || 10, 50);
   const off = parseInt(offset) || 0;
 
-  let db;
-  try { db = readDB(); } catch (e) {
-    return res.status(500).json({ error: "DB read failed: " + e.message });
-  }
-
+  const db = readDB();
   let pool = db.commands || [];
 
-  // Numeric ID → single item (rawUrl সহ, rawCode ছাড়া)
   if (q && !isNaN(q)) {
     const found = db.commands.find(c => String(c.id) === String(q));
     if (!found) return res.status(404).json({ message: "Not found" });
@@ -29,7 +24,6 @@ module.exports = async (req, res) => {
   }
 
   if (type) pool = pool.filter(c => c.type === type);
-
   if (q) {
     const lower = q.toLowerCase();
     pool = pool.filter(c =>
@@ -42,6 +36,5 @@ module.exports = async (req, res) => {
 
   const total = pool.length;
   const results = pool.slice(off, off + lim).map(({ rawCode, likedBy, ...rest }) => rest);
-
   return res.status(200).json({ commands: results, total, limit: lim, offset: off });
 };
