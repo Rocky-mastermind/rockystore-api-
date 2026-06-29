@@ -10,15 +10,11 @@ module.exports = async (req, res) => {
   const { limit = "5" } = req.query;
   const lim = Math.min(parseInt(limit) || 5, 20);
 
-  let db;
-  try { db = readDB(); } catch (e) {
-    return res.status(500).json({ error: "DB read failed: " + e.message });
-  }
-
+  const db = readDB();
   const sorted = [...(db.commands || [])]
     .sort((a, b) =>
-      ((b.likes || 0) + (b.views || 0) + (b.installs || 0)) -
-      ((a.likes || 0) + (a.views || 0) + (a.installs || 0))
+      ((b.likes||0)+(b.views||0)+(b.installs||0)) -
+      ((a.likes||0)+(a.views||0)+(a.installs||0))
     )
     .slice(0, lim)
     .map(({ rawCode, likedBy, ...rest }) => rest);
