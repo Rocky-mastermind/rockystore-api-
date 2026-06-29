@@ -1,0 +1,13 @@
+{
+  "name": "rockystore-api",
+  "version": "1.0.0",
+  "description": "Rocky Store API by Rocky Chowdhury",
+  "author": "Rocky Chowdhury",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
