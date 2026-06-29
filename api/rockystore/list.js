@@ -11,17 +11,12 @@ module.exports = async (req, res) => {
   const lim = Math.min(parseInt(limit) || 10, 50);
   const off = parseInt(offset) || 0;
 
-  let db;
-  try { db = readDB(); } catch (e) {
-    return res.status(500).json({ error: "DB read failed: " + e.message });
-  }
-
+  const db = readDB();
   let pool = db.commands || [];
   if (type) pool = pool.filter(c => c.type === type);
   pool = [...pool].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
   const total = pool.length;
   const results = pool.slice(off, off + lim).map(({ rawCode, likedBy, ...rest }) => rest);
-
   return res.status(200).json({ commands: results, total, limit: lim, offset: off });
 };
