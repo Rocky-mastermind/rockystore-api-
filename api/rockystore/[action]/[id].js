@@ -1,27 +1,21 @@
 const { readDB, writeDB } = require("../../../lib/db");
-
 const SECRET_KEY = process.env.ROCKY_SECRET || "rockychowdhury_secret";
-
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
-
   const { action, id } = req.query;
   if (!id) return res.status(400).json({ error: "id required" });
-
-  const db = readDB();
+  const db = await readDB();
   const entry = db.commands.find(c => String(c.id) === String(id));
-
   if (action === "install") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
     if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
     entry.installs = (entry.installs || 0) + 1;
-    writeDB(db);
+    await writeDB(db);
     return res.status(200).json({ success: true, installs: entry.installs });
   }
-
   if (action === "like") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
     if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
@@ -31,20 +25,17 @@ module.exports = async (req, res) => {
       return res.status(200).json({ message: "Already liked", likes: entry.likes });
     if (userID) entry.likedBy.push(String(userID));
     entry.likes = (entry.likes || 0) + 1;
-    writeDB(db);
+    await writeDB(db);
     return res.status(200).json({ success: true, likes: entry.likes });
   }
-
   if (action === "delete") {
     if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
     const { secret } = req.body || {};
-    if (!secret || secret !== SECRET_KEY)
-      return res.status(403).json({ error: "Invalid secret key." });
+    if (!secret || secret !== SECRET_KEY) return res.status(403).json({ error: "Invalid secret key." });
     if (!entry) return res.status(404).json({ error: `ID [${id}] not found.` });
     db.commands = db.commands.filter(c => String(c.id) !== String(id));
-    writeDB(db);
+    await writeDB(db);
     return res.status(200).json({ success: true, deleted: id });
   }
-
   return res.status(400).json({ error: `Unknown action: ${action}` });
 };
