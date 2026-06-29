@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rocky Store API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-bottom: 2px solid #e94560;
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    header img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid #e94560;
+      object-fit: cover;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #fff;
+    }
+
+    header h1 span {
+      color: #e94560;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    .status-bar {
+      background: #111;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .status-bar span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #00e676;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      color: #e94560;
+      margin-bottom: 16px;
+      border-left: 3px solid #e94560;
+      padding-left: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .endpoints {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .endpoint {
+      background: #1a1a2e;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .endpoint:hover {
+      border-color: #e94560;
+      background: #1f1f3a;
+    }
+
+    .method {
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 6px;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .get  { background: #00695c; color: #fff; }
+    .post { background: #1565c0; color: #fff; }
+
+    .ep-info { flex: 1; }
+    .ep-path { font-size: 0.95rem; color: #90caf9; font-family: monospace; }
+    .ep-desc { font-size: 0.8rem; color: #888; margin-top: 3px; }
+
+    .test-btn {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .test-btn:hover { background: #c0392b; }
+
+    .result-box {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 40px;
+      min-height: 60px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #00e676;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .card .num {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #e94560;
+    }
+
+    .card .label {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #555;
+      font-size: 0.8rem;
+      border-top: 1px solid #1a1a1a;
+      margin-top: 20px;
+    }
+
+    footer span { color: #e94560; }
+
+    .loading { color: #f0a500; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="https://i.imgur.com/8u69HqO.jpeg" alt="Rocky Store Logo" />
+  <div>
+    <h1>Rocky <span>Store</span> API</h1>
+    <p>GoatBot Command & Event Store — by Rocky Chowdhury</p>
+  </div>
+</header>
+
+<div class="status-bar">
+  <span></span> API is Live & Running — rockystore-api.vercel.app
+</div>
+
+<div class="container">
+
+  <div class="section-title">📊 Live Stats</div>
+  <div class="info-cards">
+    <div class="card">
+      <div class="num" id="total-commands">—</div>
+      <div class="label">Total Commands</div>
+    </div>
+    <div class="card">
+      <div class="num" id="total-events">—</div>
+      <div class="label">Total Events</div>
+    </div>
+    <div class="card">
+      <div class="num" id="total-trending">—</div>
+      <div class="label">Trending</div>
+    </div>
+    <div class="card">
+      <div class="num" style="color:#00e676">✓</div>
+      <div class="label">API Status</div>
+    </div>
+  </div>
+
+  <div class="section-title">🔌 API Endpoints</div>
+  <div class="endpoints">
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/list?type=goat-command</div>
+        <div class="ep-desc">List all GoatBot commands</div>
+      </div>
+      <button class="test-btn" onclick="testAPI('/rockystore/list?type=goat-command&limit=3')">Test</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/list?type=goat-event</div>
+        <div class="ep-desc">List all GoatBot events</div>
+      </div>
+      <button class="test-btn" onclick="testAPI('/rockystore/list?type=goat-event&limit=3')">Test</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/search?q=ping</div>
+        <div class="ep-desc">Search commands by name / author</div>
+      </div>
+      <button class="test-btn" onclick="testAPI('/rockystore/search?q=ping')">Test</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/trending</div>
+        <div class="ep-desc">Top trending commands</div>
+      </div>
+      <button class="test-btn" onclick="testAPI('/rockystore/trending?limit=3')">Test</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/upload</div>
+        <div class="ep-desc">Upload a GoatBot command or event</div>
+      </div>
+      <button class="test-btn" style="background:#555;cursor:default">Bot Only</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/like/:id</div>
+        <div class="ep-desc">Like a command</div>
+      </div>
+      <button class="test-btn" style="background:#555;cursor:default">Bot Only</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/install/:id</div>
+        <div class="ep-desc">Increment install count</div>
+      </div>
+      <button class="test-btn" style="background:#555;cursor:default">Bot Only</button>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <div class="ep-info">
+        <div class="ep-path">/rockystore/delete/:id</div>
+        <div class="ep-desc">Delete a command (secret required)</div>
+      </div>
+      <button class="test-btn" style="background:#555;cursor:default">Owner Only</button>
+    </div>
+
+  </div>
+
+  <div class="section-title">📋 Response Preview</div>
+  <div class="result-box" id="result">Click a "Test" button above to see live response...</div>
+
+</div>
+
+<footer>
+  © 2025 <span>Rocky Chowdhury</span> — Rocky Store API — All Rights Reserved
+</footer>
+
+<script>
+  const BASE = "";
+
+  async function testAPI(path) {
+    const box = document.getElementById("result");
+    box.className = "result-box visible loading";
+    box.textContent = "⏳ Fetching...";
+    try {
+      const res = await fetch(BASE + path);
+      const data = await res.json();
+      box.className = "result-box visible";
+      box.textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      box.className = "result-box visible";
+      box.style.color = "#e94560";
+      box.textContent = "❌ Error: " + e.message;
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const [cmd, evt, trend] = await Promise.all([
+        fetch("/rockystore/list?type=goat-command&limit=1").then(r => r.json()),
+        fetch("/rockystore/list?type=goat-event&limit=1").then(r => r.json()),
+        fetch("/rockystore/trending?limit=5").then(r => r.json())
+      ]);
+      document.getElementById("total-commands").textContent = cmd.total ?? "0";
+      document.getElementById("total-events").textContent   = evt.total ?? "0";
+      document.getElementById("total-trending").textContent = Array.isArray(trend) ? trend.length : "0";
+    } catch (_) {}
+  }
+
+  loadStats();
+</script>
+</body>
+        </html>
